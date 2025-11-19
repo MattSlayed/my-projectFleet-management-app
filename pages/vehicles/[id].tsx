@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
@@ -13,19 +13,7 @@ export default function VehicleDetails() {
   const [vehicle, setVehicle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated' && id) {
-      fetchVehicle();
-    }
-  }, [status, id]);
-
-  const fetchVehicle = async () => {
+  const fetchVehicle = useCallback(async () => {
     try {
       const response = await fetch(`/api/vehicles/${id}`);
       if (response.ok) {
@@ -40,7 +28,19 @@ export default function VehicleDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status === 'authenticated' && id) {
+      fetchVehicle();
+    }
+  }, [status, id, fetchVehicle]);
 
   if (status === 'loading' || loading) {
     return (
