@@ -1,6 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { maintenanceSchema } from '@/lib/validations';
 
@@ -8,12 +6,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req, res, authOptions);
-
-  if (!session) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
   if (req.method === 'GET') {
     try {
       const { vehicleId } = req.query;
@@ -31,10 +23,6 @@ export default async function handler(
   }
 
   if (req.method === 'POST') {
-    if (session.user.role !== 'admin' && session.user.role !== 'manager') {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
     try {
       const validated = maintenanceSchema.parse(req.body);
       const record = await prisma.maintenanceRecord.create({
