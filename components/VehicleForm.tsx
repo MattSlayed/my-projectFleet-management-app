@@ -21,7 +21,16 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel }: VehicleForm
     resolver: zodResolver(vehicleSchema),
     defaultValues: vehicle
       ? {
-          ...vehicle,
+          name: vehicle.name,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          licensePlate: vehicle.licensePlate,
+          vin: vehicle.vin,
+          status: vehicle.status,
+          fuelType: vehicle.fuelType,
+          mileage: vehicle.mileage,
+          purchasePrice: vehicle.purchasePrice,
           purchaseDate: vehicle.purchaseDate
             ? new Date(vehicle.purchaseDate).toISOString().split('T')[0]
             : '',
@@ -31,6 +40,7 @@ export default function VehicleForm({ vehicle, onSubmit, onCancel }: VehicleForm
           nextServiceDate: vehicle.nextServiceDate
             ? new Date(vehicle.nextServiceDate).toISOString().split('T')[0]
             : undefined,
+          imageUrl: vehicle.imageUrl ?? undefined,
         }
       : {
           status: 'active',
