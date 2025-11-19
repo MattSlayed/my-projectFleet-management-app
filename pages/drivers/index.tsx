@@ -1,28 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { User } from '@/types';
 import { Users, Mail, Shield } from 'lucide-react';
 import { formatShortDate } from '@/lib/utils';
 
 export default function Drivers() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchUsers();
-    }
-  }, [status]);
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -38,7 +26,7 @@ export default function Drivers() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -46,10 +34,6 @@ export default function Drivers() {
         </div>
       </Layout>
     );
-  }
-
-  if (!session) {
-    return null;
   }
 
   const roleColors = {

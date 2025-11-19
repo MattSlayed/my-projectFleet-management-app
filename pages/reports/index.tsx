@@ -1,33 +1,7 @@
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { BarChart3, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 
 export default function Reports() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  if (status === 'loading') {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading...</div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
   const reportTypes = [
     {
       title: 'Fleet Overview',

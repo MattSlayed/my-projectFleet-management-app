@@ -1,28 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { MaintenanceRecord } from '@/types';
 import { Wrench, Calendar, DollarSign, Car } from 'lucide-react';
 import { formatCurrency, formatShortDate } from '@/lib/utils';
 
 export default function Maintenance() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchRecords();
-    }
-  }, [status]);
+    fetchRecords();
+  }, []);
 
   const fetchRecords = async () => {
     try {
@@ -38,7 +26,7 @@ export default function Maintenance() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -46,10 +34,6 @@ export default function Maintenance() {
         </div>
       </Layout>
     );
-  }
-
-  if (!session) {
-    return null;
   }
 
   const typeColors = {

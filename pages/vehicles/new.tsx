@@ -1,25 +1,9 @@
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import VehicleForm from '@/components/VehicleForm';
 
 export default function NewVehicle() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-    if (
-      status === 'authenticated' &&
-      session?.user.role !== 'admin' &&
-      session?.user.role !== 'manager'
-    ) {
-      router.push('/vehicles');
-    }
-  }, [status, session, router]);
 
   const handleSubmit = async (data: any) => {
     try {
@@ -39,20 +23,6 @@ export default function NewVehicle() {
       alert('Failed to create vehicle');
     }
   };
-
-  if (status === 'loading') {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading...</div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!session || (session.user.role !== 'admin' && session.user.role !== 'manager')) {
-    return null;
-  }
 
   return (
     <Layout>

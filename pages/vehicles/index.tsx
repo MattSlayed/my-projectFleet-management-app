@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import VehicleCard from '@/components/VehicleCard';
@@ -7,7 +6,6 @@ import { Vehicle } from '@/types';
 import { Plus, Search } from 'lucide-react';
 
 export default function Vehicles() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,16 +13,8 @@ export default function Vehicles() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchVehicles();
-    }
-  }, [status]);
+    fetchVehicles();
+  }, []);
 
   const fetchVehicles = async () => {
     try {
@@ -52,7 +42,7 @@ export default function Vehicles() {
     return matchesSearch && matchesStatus;
   });
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -60,10 +50,6 @@ export default function Vehicles() {
         </div>
       </Layout>
     );
-  }
-
-  if (!session) {
-    return null;
   }
 
   return (
@@ -74,15 +60,13 @@ export default function Vehicles() {
             <h1 className="text-3xl font-bold text-gray-900">Vehicles</h1>
             <p className="mt-2 text-gray-600">Manage your fleet vehicles</p>
           </div>
-          {(session.user.role === 'admin' || session.user.role === 'manager') && (
-            <button
-              onClick={() => router.push('/vehicles/new')}
-              className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Add Vehicle
-            </button>
-          )}
+          <button
+            onClick={() => router.push('/vehicles/new')}
+            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add Vehicle
+          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">

@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { Vehicle, MaintenanceRecord, Trip } from '@/types';
@@ -7,7 +6,6 @@ import { Car, Calendar, Gauge, DollarSign, Wrench, MapPin } from 'lucide-react';
 import { formatCurrency, formatShortDate, formatNumber } from '@/lib/utils';
 
 export default function VehicleDetails() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
   const [vehicle, setVehicle] = useState<any>(null);
@@ -31,18 +29,12 @@ export default function VehicleDetails() {
   }, [id, router]);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated' && id) {
+    if (id) {
       fetchVehicle();
     }
-  }, [status, id, fetchVehicle]);
+  }, [id, fetchVehicle]);
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -52,7 +44,7 @@ export default function VehicleDetails() {
     );
   }
 
-  if (!session || !vehicle) {
+  if (!vehicle) {
     return null;
   }
 

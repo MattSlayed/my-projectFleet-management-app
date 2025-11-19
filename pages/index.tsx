@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import StatsCard from '@/components/StatsCard';
@@ -8,22 +7,13 @@ import { DashboardStats } from '@/types';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchStats();
-    }
-  }, [status]);
+    fetchStats();
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -39,7 +29,7 @@ export default function Home() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center h-64">
@@ -49,17 +39,13 @@ export default function Home() {
     );
   }
 
-  if (!session) {
-    return null;
-  }
-
   return (
     <Layout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
-            Welcome back, {session.user.name || session.user.email}
+            Welcome to Fleet Management
           </p>
         </div>
 

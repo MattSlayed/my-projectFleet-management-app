@@ -1,13 +1,11 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useSession, signOut } from 'next-auth/react';
 import {
   Car,
   Users,
   Wrench,
   BarChart3,
-  LogOut,
   Home,
   Menu,
   X
@@ -20,7 +18,6 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
-  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigation = [
@@ -72,23 +69,9 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-              {session && (
-                <>
-                  <div className="text-sm text-gray-700">
-                    <span className="font-medium">{session.user.name || session.user.email}</span>
-                    <span className="ml-2 text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded">
-                      {session.user.role}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => signOut()}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </button>
-                </>
-              )}
+              <div className="text-sm text-gray-700">
+                <span className="font-medium">Fleet Manager</span>
+              </div>
             </div>
             <div className="flex items-center sm:hidden">
               <button
@@ -128,25 +111,6 @@ export default function Layout({ children }: LayoutProps) {
                 );
               })}
             </div>
-            {session && (
-              <div className="pt-4 pb-3 border-t border-gray-200">
-                <div className="px-4 mb-3">
-                  <div className="text-base font-medium text-gray-800">
-                    {session.user.name || session.user.email}
-                  </div>
-                  <div className="text-sm font-medium text-gray-500">
-                    {session.user.role}
-                  </div>
-                </div>
-                <button
-                  onClick={() => signOut()}
-                  className="flex w-full items-center px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  <LogOut className="h-5 w-5 mr-3" />
-                  Sign Out
-                </button>
-              </div>
-            )}
           </div>
         )}
       </nav>
