@@ -16,7 +16,14 @@ export default function NewVehicle() {
       if (response.ok) {
         router.push('/vehicles');
       } else {
-        alert('Failed to create vehicle');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        if (errorData.details) {
+          const messages = errorData.details.map((d: any) => `${d.path.join('.')}: ${d.message}`).join('\n');
+          alert(`Validation errors:\n${messages}`);
+        } else {
+          alert(errorData.error || 'Failed to create vehicle');
+        }
       }
     } catch (error) {
       console.error('Failed to create vehicle:', error);

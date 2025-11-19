@@ -39,8 +39,12 @@ export default async function handler(
         },
       });
       return res.status(201).json(vehicle);
-    } catch (error) {
-      return res.status(400).json({ error: 'Invalid vehicle data' });
+    } catch (error: any) {
+      console.error('Vehicle creation error:', error);
+      if (error.errors) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      return res.status(400).json({ error: error.message || 'Invalid vehicle data' });
     }
   }
 
