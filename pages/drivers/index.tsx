@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { User } from '@/types';
-import { Users, Mail, Shield } from 'lucide-react';
+import { Users, Mail, UserPlus, Shield, Calendar } from 'lucide-react';
 import { formatShortDate } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Badge } from '@/components/ui/Badge';
+import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
 
 export default function Drivers() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -18,101 +25,161 @@ export default function Drivers() {
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
+      } else {
+        setError('Failed to load users');
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      setError('An error occurred while loading users');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading...</div>
-        </div>
-      </Layout>
-    );
-  }
-
-  const roleColors = {
-    admin: 'bg-red-100 text-red-800',
-    manager: 'bg-blue-100 text-blue-800',
-    user: 'bg-green-100 text-green-800',
+  const roleConfig = {
+    admin: { variant: 'error' as const, icon: Shield, label: 'Administrator' },
+    manager: { variant: 'primary' as const, icon: Users, label: 'Manager' },
+    user: { variant: 'success' as const, icon: Users, label: 'User / Driver' },
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Drivers & Users</h1>
-          <p className="mt-2 text-gray-600">Manage system users and drivers</p>
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-neutral-900">Drivers & Users</h1>
+            <p className="mt-2 text-neutral-600">Manage system users and assign drivers</p>
+          </div>
+          <Button
+            variant="primary"
+            leftIcon={<UserPlus className="h-5 w-5" />}
+            onClick={() => router.push('/drivers/new')}
+          >
+            Add User / Driver
+          </Button>
         </div>
 
-        {users.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-            <p className="text-gray-500">No users found</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Loading State */}
+        {loading && <SkeletonTable rows={5} />}
+
+        {/* Error State */}
+        {!loading && error && (
+          <Card className="bg-error-50 border-error-200">
+            <div className="flex items-center gap-3">
+              <Shield className="h-5 w-5 text-error-600" />
+              <p className="text-error-900 font-medium">{error}</p>
+              <Button variant="ghost" size="sm" onClick={fetchUsers}>
+                Retry
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && users.length === 0 && (
+          <Card className="text-center py-12">
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 bg-neutral-100 rounded-full">
+                <Users className="h-12 w-12 text-neutral-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900">No users found</h3>
+                <p className="text-neutral-600 mt-1">
+                  Get started by adding your first user or driver
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                leftIcon={<UserPlus className="h-5 w-5" />}
+                onClick={() => router.push('/drivers/new')}
+              >
+                Add User / Driver
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {/* Users Table */}
+        {!loading && !error && users.length > 0 && (
+          <Card noPadding>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-neutral-200">
+                <thead className="bg-neutral-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Joined
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="p-2 bg-primary-50 rounded-full">
-                            <Users className="h-5 w-5 text-primary-600" />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.name || 'No name'}
+                <tbody className="bg-white divide-y divide-neutral-200">
+                  {users.map((user) => {
+                    const role = roleConfig[user.role as keyof typeof roleConfig];
+                    const RoleIcon = role.icon;
+
+                    return (
+                      <tr
+                        key={user.id}
+                        className="hover:bg-neutral-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary-100 rounded-full">
+                              <Users className="h-5 w-5 text-primary-600" aria-hidden="true" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-neutral-900">
+                                {user.name || 'No name'}
+                              </div>
+                              <div className="text-xs text-neutral-500">
+                                ID: {user.id.substring(0, 8)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-900">
-                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                          {user.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            roleColors[user.role as keyof typeof roleColors]
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatShortDate(user.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-neutral-900">
+                            <Mail className="h-4 w-4 text-neutral-400" aria-hidden="true" />
+                            <span className="font-mono">{user.email}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge
+                            variant={role.variant}
+                            icon={<RoleIcon className="h-3 w-3" />}
+                          >
+                            {role.label}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-neutral-500">
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
+                            {formatShortDate(user.createdAt)}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          </div>
+
+            {/* Table Footer with Count */}
+            <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-200">
+              <p className="text-sm text-neutral-600">
+                Showing <span className="font-semibold text-neutral-900">{users.length}</span> user{users.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </Card>
         )}
       </div>
     </Layout>
