@@ -10,14 +10,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
-  role          String    @default("user") // admin, manager, user
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  assignments   DriverAssignment[]
+  id                String              @id @default(cuid())
+  name              String?
+  email             String              @unique
+  password          String
+  role              String              @default("user") // admin, manager, user
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  driverAssignments DriverAssignment[]
+  trips             Trip[]              @relation("DriverTrips")
 }
 
 model Vehicle {
@@ -91,6 +92,7 @@ model Trip {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   vehicle       Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver        User      @relation("DriverTrips", fields: [driverId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId])
   @@index([driverId])

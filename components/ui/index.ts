@@ -20,3 +20,6 @@ export type { CardProps, CardHeaderProps } from './Card';
 
 export { Toast, ToastContainer } from './Toast';
 export type { ToastProps } from './Toast';
+
+export { Modal, ConfirmModal } from './Modal';
+export type { ModalProps, ConfirmModalProps } from './Modal';

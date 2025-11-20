@@ -2,18 +2,24 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { User } from '@/types';
-import { Users, Mail, UserPlus, Shield, Calendar } from 'lucide-react';
+import { Users, Mail, UserPlus, Shield, Calendar, Eye, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { formatShortDate } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton, SkeletonTable } from '@/components/ui/Skeleton';
+import { ConfirmModal } from '@/components/ui/Modal';
+import { Toast } from '@/components/ui/Toast';
 
 export default function Drivers() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [toasts, setToasts] = useState<Array<any>>([]);
 
   useEffect(() => {
     fetchUsers();
@@ -34,6 +40,56 @@ export default function Drivers() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!userToDelete) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/users/${userToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const toast = {
+          id: Date.now().toString(),
+          title: 'User deleted successfully',
+          description: `${userToDelete.name || userToDelete.email} has been removed`,
+          variant: 'success' as const,
+          duration: 5000,
+        };
+        setToasts((prev) => [...prev, toast]);
+
+        // Refresh the users list
+        fetchUsers();
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      const toast = {
+        id: Date.now().toString(),
+        title: 'Error deleting user',
+        description: error instanceof Error ? error.message : 'Please try again',
+        variant: 'error' as const,
+        duration: 5000,
+      };
+      setToasts((prev) => [...prev, toast]);
+    } finally {
+      setDeleting(false);
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   const roleConfig = {
@@ -119,6 +175,9 @@ export default function Drivers() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                       Joined
                     </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-neutral-200">
@@ -166,6 +225,37 @@ export default function Drivers() {
                             {formatShortDate(user.createdAt)}
                           </div>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              leftIcon={<Eye className="h-4 w-4" />}
+                              onClick={() => router.push(`/drivers/${user.id}`)}
+                              aria-label="View user details"
+                            >
+                              View
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              leftIcon={<Edit className="h-4 w-4" />}
+                              onClick={() => router.push(`/drivers/${user.id}/edit`)}
+                              aria-label="Edit user"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              leftIcon={<Trash2 className="h-4 w-4" />}
+                              onClick={() => handleDeleteClick(user)}
+                              aria-label="Delete user"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     );
                   })}
@@ -182,6 +272,24 @@ export default function Drivers() {
           </Card>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete User"
+        description={`Are you sure you want to delete ${userToDelete?.name || userToDelete?.email}? This action cannot be undone.`}
+        confirmText="Delete User"
+        cancelText="Cancel"
+        variant="danger"
+        loading={deleting}
+      />
+
+      {/* Toast Notifications */}
+      {toasts.map((toast) => (
+        <Toast key={toast.id} {...toast} onClose={removeToast} />
+      ))}
     </Layout>
   );
 }
